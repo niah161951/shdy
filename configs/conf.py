@@ -1,0 +1,110 @@
+# -*- coding: utf-8 -*-
+# 作者   : Lenovo
+# 时间   : 2020/8/11 19:35
+import configparser,os,time
+from public.logs import Log
+
+class Config:
+    '''
+    配置文件操作
+    '''
+    def __init__(self):
+        self.times = time.strftime('%Y%m%d')
+        self.conf = configparser.ConfigParser()
+        self.path_name = os.path.split(os.path.realpath(__file__))[0]
+        self.conf_path = os.path.join(self.path_name, 'conf.ini')
+        self.conf.read(self.conf_path,encoding='gbk')
+        if not os.path.exists(self.conf_path):
+            Log().info("请确保配置文件存在！")
+            raise FileNotFoundError("请确保配置文件存在！")
+
+    def set_conf(self,param, name, value):
+        '''
+        新增配置文件数据
+        :param param:
+        :param name:
+        :param value:
+        :return:
+        '''
+
+        try:
+            # self.conf.add_section( param.upper())
+            self.conf.set( param.upper(), name+self.times, value)
+            with open(self.conf_path, 'w+') as f:
+                return self.conf.write(f)
+
+        except configparser.DuplicateSectionError:
+            self.conf.set( param.upper(), self.times+name, value)
+            with open(self.conf_path, 'w+') as f:
+                return self.conf.write(f)
+
+    def read_conf(self, key, value):
+        """
+        读取配置文件中的param相关信息
+        :param key:
+        :param value:
+        :return:
+        """
+        try:
+            values = self.conf.get(key, value)
+            Log().info(f'输入{key},{value}值,结果：{values}')
+            return values
+
+        except Exception as error:
+            Log().error(f'未知错误：{error}')
+
+    def update_conf(self, title, value, text):
+        """
+        配置文件修改
+        :param title:
+        :param value:
+        :param text:
+        :return:
+        """
+        self.conf.set(title, value, text)
+        with open(self.conf_path, "w+") as f:
+            Log().info(f'修改配置文件{title},{value}值,结果：{text}')
+            return self.conf.write(f)
+
+    def set_param(self, name, value):
+        '''
+        新增配置文件数据
+        :param param:
+        :param name:
+        :param value:
+        :return:
+        '''
+        try:
+            self.conf.add_section("DATA")
+            self.conf.set("DATA", name, value)
+            with open(self.conf_path, 'w') as f:
+                Log().info(f'获取数据：输入{name},{value}')
+                return self.conf.write(f)
+
+        except configparser.DuplicateSectionError:
+            self.conf.set("DATA", name, value)
+            with open(self.conf_path, 'w') as f:
+                return self.conf.write(f)
+
+    def get_str(self,s, f, b):
+        '''
+        获取特定字符串
+        :param s:
+        :param f:
+        :param b:
+        :return:
+        '''
+        par = s.partition(f)
+        getstr = (par[2].partition(b))[0][:]
+        Log().info(f'获取原始字符串：\n{s}   \n使用get_str方法截取字符串，结果：{getstr}')
+        return getstr
+
+if __name__=="__main__":
+    s=Config()
+    ss = 'rspCode=PPD10003&rspMessage=合作机构路由未配置&payInfo=&merchantId=872290270135000&tradeType=&tradeNo=202003060059717250&signType=RSA&orderId=&transAmt=1&orderTime=&version=1.1&charset=00&wcPayData=&tn=&extendInfo=&payUrl=&jsAppId=&jsAppUrl=&serverCert=308204F2308203DAA00302010202054112155419300D06092A864886F70D01010B05003058310B300906035504061302434E3130302E060355040A0C274368696E612046696E616E6369616C2043657274696669636174696F6E20417574686F726974793117301506035504030C0E4346434120414353204F43413331301E170D3138303532333038333831355A170D3231303532333038333831355A3081A0310B300906035504061302434E31173015060355040A0C0E4346434120414353204F4341333131133011060355040B0C0A43464341204F4341333131193017060355040B0C104F7267616E697A6174696F6E616C2D313148304606035504030C3F4346434140E4B88AE6B5B7E794B5E993B6E4BFA1E681AFE68A80E69CAFE69C89E99990E585ACE58FB8404E393133313030303035373037363637363130403430820122300D06092A864886F70D01010105000382010F003082010A0282010100C866633C25EC315BBEECE573EC4D2F27F247B757F1EEAFE63F54907109CB1AF42CBAF9AAE70E5BCF0782ABB20B963A35AADD1C00A27A3EF65D5D4F7C6FA7306829C6CB82B2F621403AC8DD3DFBCC5BE8B4E8D7AEFC855D39F7FE378A004E8D7C303B1D2AC96167C367170B707C463A715469695710397E1FE5BA9E5B66F1803F740602706F0B2EA1F79C8D02B2C2F7679C5F159E37C3446B3C71859E67C1B28515B51BF33DBCBB7CD45DFD0C9433AB3C0128C0A0AA7678787E15B7A32E91F325E19AD227CC6CB38F851064E93B7A596C605D90466AE7421C6FAF603B4401B665505FC7F90CE6512A6151DBF9BB3D7186DE5454160160376B01ADC53B0575468F0203010001A382017830820174306C06082B060105050701010460305E302806082B06010505073001861C687474703A2F2F6F6373702E636663612E636F6D2E636E2F6F637370303206082B060105050730028626687474703A2F2F63726C2E636663612E636F6D2E636E2F6F636133312F6F636133312E636572301F0603551D23041830168014E2B409CBCD61A1734A797FF18A830BDDB47E8C1D300C0603551D130101FF0402300030480603551D200441303F303D060860811C86EF2A01043031302F06082B060105050702011623687474703A2F2F7777772E636663612E636F6D2E636E2F75732F75732D31342E68746D303D0603551D1F043630343032A030A02E862C687474703A2F2F63726C2E636663612E636F6D2E636E2F6F636133312F5253412F63726C313133362E63726C300E0603551D0F0101FF0404030206C0301D0603551D0E04160414CDED6F00FD56A7E6EF28BAACFBEE31099A6AD262301D0603551D250416301406082B0601050507030206082B06010505070304300D06092A864886F70D01010B05000382010100CB7BDA33BF68428302212EC5A824E70B7A2146D39056243EAEC82F5AA934ECC0B9E2A65037AD729077F12995B6F38A55865C191B2909FBDADC6120C100EE49843B1A6851C010FC7C8B0EA4FF4173C70C4E30C2C6D8A86B5FD1E1A171771FD89E216C8E5FD458CF7202F1F954D69C9A42DCA706FCD6B80D7EFB88798A0D45DB791D4FB370F959368A04875A1CB21720970714E94F7FA477D388C6FEABC1B7AACD5264ACAEA7E1B99427EA891944A81B97E561FEE4E411008E6920FAAFF0CBB1FE2851B9B34304472E7B09CE097421700608E1D5629CE2D43AFE6A120EBC5177B23C014634D2F92F95F194B8E4F3C96AF6078EE7571A30834AE2B096111E0EAB17&serverSign=1638EAAC5463DA53584C1146A5FD8452AEBD6B3672D56752D4763CB291CFCBD5DB98D970E880DB684480862AEF70D6FD1D981CB7E80BECF52A628FE2ED7770F36905A61DC3C35AC5E76CDDFBD803978B8942E25BAD20DE1E53779F5DBA92B9792BBC4C7D4C328216B5DDA6ABC2D2BAD749AC124531409B853DB56BCCB7F2FD2EE6613BFD418A19F677307BC69FF4B856DC270FA28FEDA048E75D96C320D555137532F828E5121A02583C78A0F315AFD0D01CBFA906DB33D0DC9E47B99CFAD40DA516736BD7B70A1B89A986521920897DF2BE3467C524CEF1813B2697B7462B17E24C599921E1F4DCFA204F5703DAEE597EEC52A225CA0148B1185FC8AA39D635'
+    merid = s.set_conf('MERCID', '新增快速商户', '1231514')
+    a = s.read_conf('MERCID','新增快速商户')
+    d = s.get_str(ss,'rspMessage=','&payInfo')
+    print(d)
+    print(a,merid)
+
